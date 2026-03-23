@@ -13,10 +13,19 @@ def parse_money(s):
 def format_money(x):
     return f"{x:,}".replace(",", ".") + " đ"
 
-# ===== HÀM IN K80 =====
+# ===== IN BILL K80 ĐẸP =====
 def generate_print_html(summary, doan):
     def fm(x):
         return f"{x:,}".replace(",", ".") + " đ"
+
+    def line(left="", mid="", right=""):
+        return f"""
+        <div style="display:flex; justify-content:space-between;">
+            <span>{left}</span>
+            <span>{mid}</span>
+            <span>{right}</span>
+        </div>
+        """
 
     html = """
     <html>
@@ -25,57 +34,48 @@ def generate_print_html(summary, doan):
     @media print {
         @page {
             width: 80mm;
-            margin: 5mm;
-        }
-        body {
-            font-family: monospace;
-            font-size: 12px;
+            margin: 4mm;
         }
     }
     body {
-        width: 80mm;
-        margin: auto;
+        width: 72mm;
         font-family: monospace;
+        font-size: 13px;
+        margin: auto;
     }
-    h3 { text-align: center; }
-    .line { border-top: 1px dashed #000; margin: 5px 0; }
-    table { width: 100%; }
-    td { font-size: 12px; }
-    .right { text-align: right; }
+    .center { text-align:center; font-weight:bold; }
+    .line { border-top:1px dashed #000; margin:6px 0; }
     </style>
     </head>
     <body>
-
-    <h3>BAO CAO VE</h3>
-    <div class="line"></div>
     """
 
-    # Tổng hợp
+    html += '<div class="center">NHÀ XE PHÚC HẢI</div>'
+    html += '<div class="center">BÁO CÁO VÉ</div>'
+    html += '<div class="line"></div>'
+
+    # ===== TỔNG HỢP =====
     for _, row in summary.iterrows():
-        html += f"""
-        <table>
-        <tr>
-            <td>{row['Nhóm']}</td>
-            <td class='right'>{row['Số_vé']}</td>
-            <td class='right'>{fm(row['Tổng_tiền'])}</td>
-        </tr>
-        </table>
-        """
+        html += line(
+            row["Nhóm"],
+            str(row["Số_vé"]),
+            fm(row["Tổng_tiền"])
+        )
 
-    html += "<div class='line'></div>"
+    html += '<div class="line"></div>'
 
-    # Doan
+    # ===== DOAN =====
     if not doan.empty:
-        html += "<b>DOAN</b><br>"
+        html += '<div class="center">DOAN</div>'
+
         for _, row in doan.iterrows():
-            html += f"""
-            <div>{row['Số ghế']} - {row['Ghi chú']}</div>
-            <div class='right'>{fm(row['Tổng tiền'])}</div>
-            <div class='line'></div>
-            """
+            html += f"<div><b>{row['Số ghế']}</b></div>"
+            html += f"<div style='font-size:12px'>{row['Ghi chú']}</div>"
+            html += line("", "", fm(row["Tổng tiền"]))
+            html += '<div class="line"></div>'
 
         total = doan["Tổng tiền"].sum()
-        html += f"<b>Tổng: {len(doan)} vé - {fm(total)}</b>"
+        html += f"<div><b>Tổng: {len(doan)} vé - {fm(total)}</b></div>"
 
     html += """
     <script>
@@ -88,6 +88,7 @@ def generate_print_html(summary, doan):
     """
 
     return html
+
 
 # ===== XỬ LÝ FILE =====
 if file:
@@ -102,6 +103,7 @@ if file:
     def classify(row):
         agent = row["Đại lý"].lower()
         note = row["Ghi chú"].lower()
+
         if agent.endswith(".vxr") or "@" in agent:
             return "vxr"
         elif agent.endswith(".phuchai"):
@@ -120,7 +122,7 @@ if file:
         Tổng_tiền=("Tổng tiền","sum")
     ).reset_index()
 
-    # Format tiền để hiển thị
+    # ===== HIỂN THỊ =====
     summary_display = summary.copy()
     summary_display["Tổng_tiền"] = summary_display["Tổng_tiền"].apply(format_money)
 
@@ -130,6 +132,7 @@ if file:
     doan = df[df["Nhóm"]=="Doan"][["Số ghế","Ghi chú","Tổng tiền"]]
 
     st.subheader("🔎 Chi tiết Doan")
+
     if doan.empty:
         st.info("Không phát sinh vé Doan")
     else:
