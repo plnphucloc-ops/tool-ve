@@ -13,7 +13,7 @@ def parse_money(s):
 def format_money(x):
     return f"{x:,}".replace(",", ".") + " đ"
 
-# ===== IN BILL K80 ĐẸP =====
+# ===== HÀM IN K80 =====
 def generate_print_html(summary, doan):
     def fm(x):
         return f"{x:,}".replace(",", ".") + " đ"
@@ -50,8 +50,7 @@ def generate_print_html(summary, doan):
     <body>
     """
 
-    html += '<div class="center">NHÀ XE PHÚC HẢI</div>'
-    html += '<div class="center">BÁO CÁO VÉ</div>'
+    html += '<div class="center">BAO CAO VE</div>'
     html += '<div class="line"></div>'
 
     # ===== TỔNG HỢP =====
@@ -89,6 +88,48 @@ def generate_print_html(summary, doan):
 
     return html
 
+    <h3>BAO CAO VE</h3>
+    <div class="line"></div>
+    """
+
+    # Tổng hợp
+    for _, row in summary.iterrows():
+        html += f"""
+        <table>
+        <tr>
+            <td>{row['Nhóm']}</td>
+            <td class='right'>{row['Số_vé']}</td>
+            <td class='right'>{fm(row['Tổng_tiền'])}</td>
+        </tr>
+        </table>
+        """
+
+    html += "<div class='line'></div>"
+
+    # Doan
+    if not doan.empty:
+        html += "<b>DOAN</b><br>"
+        for _, row in doan.iterrows():
+            html += f"""
+            <div>{row['Số ghế']} - {row['Ghi chú']}</div>
+            <div class='right'>{fm(row['Tổng tiền'])}</div>
+            <div class='line'></div>
+            """
+
+        total = doan["Tổng tiền"].sum()
+        html += f"<b>Tổng: {len(doan)} vé - {fm(total)}</b>"
+
+    html += """
+    <script>
+    window.onload = function() {
+        window.print();
+    }
+    </script>
+    </body>
+    </html>
+    """
+
+    return html
 
 # ===== XỬ LÝ FILE =====
 if file:
@@ -103,7 +144,6 @@ if file:
     def classify(row):
         agent = row["Đại lý"].lower()
         note = row["Ghi chú"].lower()
-
         if agent.endswith(".vxr") or "@" in agent:
             return "vxr"
         elif agent.endswith(".phuchai"):
@@ -122,19 +162,18 @@ if file:
         Tổng_tiền=("Tổng tiền","sum")
     ).reset_index()
 
-    # ===== HIỂN THỊ =====
+    # Format tiền để hiển thị
     summary_display = summary.copy()
     summary_display["Tổng_tiền"] = summary_display["Tổng_tiền"].apply(format_money)
 
     st.subheader("📊 KẾT QUẢ SAU KHI CẬP NHẬT")
     st.dataframe(summary_display, use_container_width=True)
 
-    doan = df[df["Nhóm"]=="C.Doan"][["Số ghế","Ghi chú","Tổng tiền"]]
+    doan = df[df["Nhóm"]=="Doan"][["Số ghế","Ghi chú","Tổng tiền"]]
 
-    st.subheader("🔎 Chi tiết C.Doan")
-
+    st.subheader("🔎 Chi tiết Doan")
     if doan.empty:
-        st.info("Không phát sinh vé C.Doan")
+        st.info("Không phát sinh vé Doan")
     else:
         doan_display = doan.copy()
         doan_display["Tổng tiền"] = doan_display["Tổng tiền"].apply(format_money)
