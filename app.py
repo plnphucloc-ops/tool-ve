@@ -129,12 +129,12 @@ if file:
     st.subheader("📊 KẾT QUẢ SAU KHI CẬP NHẬT")
     st.dataframe(summary_display, use_container_width=True)
 
-    doan = df[df["Nhóm"]=="Doan"][["Số ghế","Ghi chú","Tổng tiền"]]
+    doan = df[df["Nhóm"]=="C.Doan"][["Số ghế","Ghi chú","Tổng tiền"]]
 
-    st.subheader("🔎 Chi tiết Doan")
+    st.subheader("🔎 Chi tiết C.Doan")
 
     if doan.empty:
-        st.info("Không phát sinh vé Doan")
+        st.info("Không phát sinh vé C.Doan")
     else:
         doan_display = doan.copy()
         doan_display["Tổng tiền"] = doan_display["Tổng tiền"].apply(format_money)
