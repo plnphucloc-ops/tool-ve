@@ -87,48 +87,6 @@ def generate_print_html(summary, doan):
     """
 
     return html
-
-    <h3>BAO CAO VE</h3>
-    <div class="line"></div>
-    """
-
-    # Tổng hợp
-    for _, row in summary.iterrows():
-        html += f"""
-        <table>
-        <tr>
-            <td>{row['Nhóm']}</td>
-            <td class='right'>{row['Số_vé']}</td>
-            <td class='right'>{fm(row['Tổng_tiền'])}</td>
-        </tr>
-        </table>
-        """
-
-    html += "<div class='line'></div>"
-
-    # Doan
-    if not doan.empty:
-        html += "<b>DOAN</b><br>"
-        for _, row in doan.iterrows():
-            html += f"""
-            <div>{row['Số ghế']} - {row['Ghi chú']}</div>
-            <div class='right'>{fm(row['Tổng tiền'])}</div>
-            <div class='line'></div>
-            """
-
-        total = doan["Tổng tiền"].sum()
-        html += f"<b>Tổng: {len(doan)} vé - {fm(total)}</b>"
-
-    html += """
-    <script>
-    window.onload = function() {
-        window.print();
-    }
-    </script>
-    </body>
-    </html>
-    return html
-
 # ===== XỬ LÝ FILE =====
 if file:
     df = pd.read_html(file)[0]
