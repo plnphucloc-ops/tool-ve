@@ -18,14 +18,11 @@ def generate_print_html(summary, doan):
     def fm(x):
         return f"{x:,}".replace(",", ".") + " đ"
 
-    def line(left="", mid="", right=""):
-        return f"""
-        <div style="display:flex; justify-content:space-between;">
-            <span>{left}</span>
-            <span>{mid}</span>
-            <span>{right}</span>
-        </div>
-        """
+    def row_line(name, qty, money):
+        name = str(name)[:14].ljust(14)
+        qty = str(qty).rjust(3)
+        money = fm(money).rjust(12)
+        return f"<pre>{name}{qty}{money}</pre>"
 
     html = """
     <html>
@@ -41,10 +38,13 @@ def generate_print_html(summary, doan):
         width: 72mm;
         font-family: monospace;
         font-size: 13px;
-        margin: auto;
     }
     .center { text-align:center; font-weight:bold; }
     .line { border-top:1px dashed #000; margin:6px 0; }
+    pre {
+        margin: 0;
+        font-family: monospace;
+    }
     </style>
     </head>
     <body>
@@ -53,12 +53,16 @@ def generate_print_html(summary, doan):
     html += '<div class="center">BAO CAO VE</div>'
     html += '<div class="line"></div>'
 
+    # ===== HEADER =====
+    html += "<pre>NHOM           SL   TIEN</pre>"
+    html += '<div class="line"></div>'
+
     # ===== TỔNG HỢP =====
     for _, row in summary.iterrows():
-        html += line(
+        html += row_line(
             row["Nhóm"],
-            str(row["Số_vé"]),
-            fm(row["Tổng_tiền"])
+            row["Số_vé"],
+            row["Tổng_tiền"]
         )
 
     html += '<div class="line"></div>'
@@ -68,13 +72,17 @@ def generate_print_html(summary, doan):
         html += '<div class="center">DOAN</div>'
 
         for _, row in doan.iterrows():
-            html += f"<div><b>{row['Số ghế']}</b></div>"
-            html += f"<div style='font-size:12px'>{row['Ghi chú']}</div>"
-            html += line("", "", fm(row["Tổng tiền"]))
+            html += f"<pre>{row['Số ghế']}</pre>"
+
+            # cắt ghi chú cho gọn
+            note = row["Ghi chú"][:45]
+            html += f"<pre>{note}</pre>"
+
+            html += f"<pre>{fm(row['Tổng tiền']).rjust(30)}</pre>"
             html += '<div class="line"></div>'
 
         total = doan["Tổng tiền"].sum()
-        html += f"<div><b>Tổng: {len(doan)} vé - {fm(total)}</b></div>"
+        html += f"<pre><b>Tong: {len(doan)} ve - {fm(total)}</b></pre>"
 
     html += """
     <script>
