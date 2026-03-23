@@ -127,8 +127,6 @@ def generate_print_html(summary, doan):
     </script>
     </body>
     </html>
-    """
-
     return html
 
 # ===== XỬ LÝ FILE =====
